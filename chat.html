@@ -1522,7 +1522,7 @@
                     }
                 }
                 btn.disabled = false;
-                btn.innerHTML = '发送 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
+                resetSendBtn();
                 input.value = '';
                 document.getElementById('charCount').textContent = '0 / 4000';
                 input.focus();
@@ -1530,14 +1530,24 @@
 
             xhr.onerror = function() {
                 responseBody.innerHTML = '<div class="error-box">网络请求失败，请检查网络连接</div>';
-                btn.disabled = false;
-                btn.innerHTML = '发送 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
+                var convAfterErr = getConversation(convId);
+                if (convAfterErr) {
+                    convAfterErr.messages.pop();
+                    convAfterErr.updatedAt = Date.now();
+                    saveConversation(convAfterErr);
+                }
+                resetSendBtn();
             };
 
             xhr.ontimeout = function() {
                 responseBody.innerHTML = '<div class="error-box">请求超时，请稍后重试</div>';
-                btn.disabled = false;
-                btn.innerHTML = '发送 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
+                var convAfterErr = getConversation(convId);
+                if (convAfterErr) {
+                    convAfterErr.messages.pop();
+                    convAfterErr.updatedAt = Date.now();
+                    saveConversation(convAfterErr);
+                }
+                resetSendBtn();
             };
 
             xhr.send(JSON.stringify(body));
@@ -1546,6 +1556,12 @@
         document.getElementById('userInput').addEventListener('input', function() {
             document.getElementById('charCount').textContent = this.value.length + ' / 4000';
         });
+
+        function resetSendBtn() {
+            var btn = document.getElementById('sendBtn');
+            btn.disabled = false;
+            btn.innerHTML = '发送 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>';
+        }
 
         document.getElementById('userInput').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -1564,7 +1580,7 @@
             document.getElementById('apiKey').value = savedKey;
         }
 
-        document.getElementById('apiKey').addEventListener('change', function() {
+        document.getElementById('apiKey').addEventListener('input', function() {
             safeStorageSet('deepseek_api_key', this.value);
         });
 
